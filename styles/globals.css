@@ -76,6 +76,19 @@ body {
   scrollbar-color: #cbd5e1 #f9fafb;
 }
 
+/* Prevent scroll jumping on input focus */
+input:focus,
+select:focus,
+textarea:focus {
+  scroll-margin-top: 0;
+  scroll-margin-bottom: 0;
+}
+
+/* Smooth scroll prevention for input changes */
+html {
+  scroll-behavior: auto;
+}
+
 /* Print styles */
 @media print {
   .no-print {

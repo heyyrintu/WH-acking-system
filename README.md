@@ -104,14 +104,24 @@ Configure your HD pallet rack system:
 
 ### 3. Aisle Configuration
 
-Choose your aisle width based on equipment:
+Configure two types of aisles for optimal flow:
 
+#### Main Aisle (Longitudinal)
+- Runs **parallel** to rack rows (along the bays)
 - **Standard (10 ft)**: For reach trucks and counterbalance forklifts
 - **VNA (6 ft)**: Very Narrow Aisle - requires specialized wire-guided equipment
-- **Custom**: Adjust based on your specific operational needs
+- Used for picking operations within a row
 
-**VNA Benefits**: 30-60% more storage capacity vs standard aisles
-**VNA Requirements**: Wire guidance systems, specialized turret trucks, operator training
+#### Cross-Aisle (Transverse)
+- Runs **perpendicular** to rack rows (between rows) - **shown as yellow lines in layout**
+- Connects different rack rows for circulation
+- Can be wider than main aisle for better traffic flow
+- **Standard (10 ft)**: Matches main aisle
+- **Custom (12-14 ft)**: Wider for two-way traffic or busier zones
+
+**VNA Benefits**: 30-60% more storage capacity vs standard aisles  
+**VNA Requirements**: Wire guidance systems, specialized turret trucks, operator training  
+**Row Pitch**: Bay width + cross-aisle width (spacing between rack rows)
 
 ### 4. Review Results
 
@@ -152,11 +162,12 @@ hd_area = racking_area - mezzanine_area
 // Bay footprint
 bay_footprint = bay_length × bay_width
 
-// Module pattern (longitudinal)
-module_length = (2 × bay_length) + small_gap + aisle_width
+// Module pattern (longitudinal) - runs along rack rows
+module_length = (2 × bay_length) + small_gap + main_aisle_width
 
-// Row pitch (transverse)
-row_pitch = bay_width + aisle_width
+// Row pitch (transverse) - spacing between rack rows
+row_pitch = bay_width + cross_aisle_width
+// Note: Cross-aisle can be different from main aisle for optimized flow
 ```
 
 ### Bay Count - Module Method
@@ -230,8 +241,10 @@ All defaults are overrideable in the UI:
 | Rack % | 60% | Floor for racking |
 | Mezzanine % | 30% | Of racking area |
 | Small Gap | 1.5 ft | Between paired bays |
-| Aisle Width (Std) | 10 ft | Reach truck |
-| Aisle Width (VNA) | 6 ft | Wire-guided |
+| Main Aisle Width (Std) | 10 ft | Longitudinal (parallel to racks) |
+| Main Aisle Width (VNA) | 6 ft | Wire-guided |
+| Cross-Aisle Width (Std) | 10 ft | Transverse (between rows) |
+| Cross-Aisle Width (VNA) | 6 ft | Between rows |
 | Overhead Multiplier (Std) | 1.5 | Conservative factor |
 | Overhead Multiplier (VNA) | 1.2 | VNA factor |
 | Mezzanine Clear Height | 7.2 ft | Under deck |

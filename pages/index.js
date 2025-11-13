@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import InputPanel from '../components/InputPanel';
 import ResultsPanel from '../components/ResultsPanel';
@@ -30,11 +30,13 @@ export default function Home() {
     // Aisle and operations
     smallGap: 1.5,
     aisleWidth: 10,
+    crossAisleWidth: 10,
     isVNA: false,
     aisleOverheadMultiplier: 1.5,
     
     // Mezzanine
     mezzClearHeight: 7.2,
+    mezzLevels: 1,
     
     // Pallets
     palletFootprint: 12.92,
@@ -47,12 +49,24 @@ export default function Home() {
   const [results, setResults] = useState(null);
   const [showWalkthrough, setShowWalkthrough] = useState(false);
   const [activeView, setActiveView] = useState('standard'); // 'standard' or 'vna'
+  const scrollPositionRef = useRef(0);
 
   // Calculate on mount and input changes
   useEffect(() => {
+    // Save current scroll position
+    scrollPositionRef.current = window.scrollY || window.pageYOffset;
+    
     try {
       const calculated = calculateWarehouseCapacity(inputs);
       setResults(calculated);
+      
+      // Restore scroll position after calculation
+      requestAnimationFrame(() => {
+        window.scrollTo({
+          top: scrollPositionRef.current,
+          behavior: 'instant'
+        });
+      });
     } catch (error) {
       console.error('Calculation error:', error);
     }
@@ -89,9 +103,11 @@ export default function Home() {
       mezzPercent: 30,
       smallGap: 1.5,
       aisleWidth: 10,
+      crossAisleWidth: 10,
       isVNA: false,
       aisleOverheadMultiplier: 1.5,
       mezzClearHeight: 7.2,
+      mezzLevels: 1,
       palletFootprint: 12.92,
       palletsPerLevelOverride: null,
       useModuleMethod: false,
@@ -103,12 +119,14 @@ export default function Home() {
       // Switch to VNA
       setActiveView('vna');
       handleInputChange('aisleWidth', 6);
+      handleInputChange('crossAisleWidth', 6);
       handleInputChange('isVNA', true);
       handleInputChange('aisleOverheadMultiplier', 1.2);
     } else {
       // Switch back to standard
       setActiveView('standard');
       handleInputChange('aisleWidth', 10);
+      handleInputChange('crossAisleWidth', 10);
       handleInputChange('isVNA', false);
       handleInputChange('aisleOverheadMultiplier', 1.5);
     }

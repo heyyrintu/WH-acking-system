@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function InputPanel({ inputs, onInputChange, results }) {
   const [expandedSections, setExpandedSections] = useState({
@@ -8,6 +8,11 @@ export default function InputPanel({ inputs, onInputChange, results }) {
     mezzanine: true,
     advanced: false,
   });
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const toggleSection = (section) => {
     setExpandedSections(prev => ({
@@ -36,31 +41,48 @@ export default function InputPanel({ inputs, onInputChange, results }) {
     </div>
   );
 
-  const InputField = ({ label, name, type = 'number', min, max, step = 'any', unit, help }) => (
-    <div>
-      <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">
-        {label}
-        {unit && <span className="text-gray-500 ml-1">({unit})</span>}
-      </label>
-      <input
-        type={type}
-        id={name}
-        name={name}
-        value={inputs[name]}
-        onChange={(e) => onInputChange(name, parseFloat(e.target.value) || 0)}
-        min={min}
-        max={max}
-        step={step}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        aria-describedby={help ? `${name}-help` : undefined}
-      />
-      {help && (
-        <p id={`${name}-help`} className="mt-1 text-xs text-gray-500">
-          {help}
-        </p>
-      )}
-    </div>
-  );
+  const InputField = ({ label, name, type = 'number', min, max, step = 'any', unit, help }) => {
+    const handleChange = (e) => {
+      e.preventDefault();
+      onInputChange(name, parseFloat(e.target.value) || 0);
+    };
+
+    const handleFocus = (e) => {
+      // Prevent scroll when input is focused - keep visualization in place
+      const scrollContainer = e.target.closest('.input-panel-scroll');
+      if (scrollContainer) {
+        // Only scroll within the input panel, not the main page
+        e.target.scrollIntoView({ behavior: 'instant', block: 'nearest', inline: 'nearest' });
+      }
+    };
+
+    return (
+      <div>
+        <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">
+          {label}
+          {unit && <span className="text-gray-500 ml-1">({unit})</span>}
+        </label>
+        <input
+          type={type}
+          id={name}
+          name={name}
+          value={inputs[name]}
+          onChange={handleChange}
+          onFocus={handleFocus}
+          min={min}
+          max={max}
+          step={step}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          aria-describedby={help ? `${name}-help` : undefined}
+        />
+        {help && (
+          <p id={`${name}-help`} className="mt-1 text-xs text-gray-500">
+            {help}
+          </p>
+        )}
+      </div>
+    );
+  };
 
   const SliderField = ({ label, name, min, max, step = 1, unit }) => (
     <div>
@@ -111,27 +133,44 @@ export default function InputPanel({ inputs, onInputChange, results }) {
     </div>
   );
 
-  const SelectField = ({ label, name, options, unit }) => (
-    <div>
-      <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">
-        {label}
-        {unit && <span className="text-gray-500 ml-1">({unit})</span>}
-      </label>
-      <select
-        id={name}
-        name={name}
-        value={inputs[name]}
-        onChange={(e) => onInputChange(name, parseFloat(e.target.value))}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-      >
-        {options.map(opt => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
+  const SelectField = ({ label, name, options, unit }) => {
+    const handleChange = (e) => {
+      e.preventDefault();
+      onInputChange(name, parseFloat(e.target.value));
+    };
+
+    const handleFocus = (e) => {
+      // Prevent scroll when select is focused - keep visualization in place
+      const scrollContainer = e.target.closest('.input-panel-scroll');
+      if (scrollContainer) {
+        // Only scroll within the input panel, not the main page
+        e.target.scrollIntoView({ behavior: 'instant', block: 'nearest', inline: 'nearest' });
+      }
+    };
+
+    return (
+      <div>
+        <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">
+          {label}
+          {unit && <span className="text-gray-500 ml-1">({unit})</span>}
+        </label>
+        <select
+          id={name}
+          name={name}
+          value={inputs[name]}
+          onChange={handleChange}
+          onFocus={handleFocus}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          {options.map(opt => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 sticky top-4 flex flex-col max-h-[calc(100vh-2rem)]">
@@ -144,7 +183,14 @@ export default function InputPanel({ inputs, onInputChange, results }) {
       </div>
 
       {/* Scrollable Content */}
-      <div className="input-panel-scroll overflow-y-auto overflow-x-hidden flex-1 px-6 py-4 space-y-4" style={{ maxHeight: 'calc(100vh - 10rem)' }}>
+      <div 
+        className="input-panel-scroll overflow-y-auto overflow-x-hidden flex-1 px-6 py-4 space-y-4" 
+        style={{ maxHeight: 'calc(100vh - 10rem)' }}
+        onScroll={(e) => {
+          // Prevent scroll from bubbling to main page
+          e.stopPropagation();
+        }}
+      >
 
       {/* Validation Warnings */}
       {results?.validation && (
@@ -255,22 +301,47 @@ export default function InputPanel({ inputs, onInputChange, results }) {
         />
 
         <SliderField
-          label="Floor Used for Racking"
+          label="Floor Used for Racking System"
           name="percentRacking"
           min={0}
           max={100}
           step={5}
           unit="%"
         />
+        {isMounted && (
+          <p className="text-xs text-blue-600 -mt-2 mb-2 px-1">
+            ℹ️ Total floor area for racking (HD + Mezzanine combined) = <strong>{inputs.percentRacking}% of {(inputs.warehouseArea || 0).toLocaleString()} sq.ft = {Math.round((inputs.warehouseArea || 0) * inputs.percentRacking / 100).toLocaleString()} sq.ft</strong>
+          </p>
+        )}
 
-        <SliderField
-          label="Mezzanine Allocation"
-          name="mezzPercent"
-          min={0}
-          max={100}
-          step={5}
-          unit="%"
-        />
+        <div className={inputs.percentRacking === 0 ? 'opacity-50 pointer-events-none' : ''}>
+          <SliderField
+            label="Mezzanine Split (within racking area)"
+            name="mezzPercent"
+            min={0}
+            max={100}
+            step={5}
+            unit="%"
+          />
+          {isMounted && (
+            <div className="text-xs text-gray-600 -mt-2 mb-2 px-1 space-y-1">
+              {inputs.percentRacking > 0 ? (
+                <>
+                  <p className="text-purple-700">
+                    • <strong>Mezzanine: {inputs.mezzPercent}%</strong> = {Math.round((inputs.warehouseArea || 0) * inputs.percentRacking / 100 * inputs.mezzPercent / 100).toLocaleString()} sq.ft
+                  </p>
+                  <p className="text-indigo-700">
+                    • <strong>HD Racks: {100 - inputs.mezzPercent}%</strong> = {Math.round((inputs.warehouseArea || 0) * inputs.percentRacking / 100 * (100 - inputs.mezzPercent) / 100).toLocaleString()} sq.ft
+                  </p>
+                </>
+              ) : (
+                <p className="text-orange-600 font-semibold">
+                  ⚠️ Increase "Floor Used for Racking System" above 0% to split HD vs Mezzanine
+                </p>
+              )}
+            </div>
+          )}
+        </div>
       </Section>
 
       {/* Aisles & Operations */}
@@ -281,17 +352,53 @@ export default function InputPanel({ inputs, onInputChange, results }) {
           help="VNA requires specialized equipment"
         />
 
-        <SelectField
-          label="Aisle Width"
-          name="aisleWidth"
-          unit="ft"
-          options={[
-            { value: 6, label: '6 ft (VNA)' },
-            { value: 8, label: '8 ft' },
-            { value: 10, label: '10 ft (Standard)' },
-            { value: 12, label: '12 ft' },
-          ]}
-        />
+        <div className="space-y-3">
+          <SelectField
+            label="Main Aisle Width (Longitudinal)"
+            name="aisleWidth"
+            unit="ft"
+            options={[
+              { value: 6, label: '6 ft (VNA)' },
+              { value: 8, label: '8 ft' },
+              { value: 10, label: '10 ft (Standard)' },
+              { value: 12, label: '12 ft' },
+            ]}
+          />
+          <p className="text-xs text-gray-600 -mt-1 px-1">
+            📏 <strong>Main aisle:</strong> Runs along the rack rows (parallel to bays)
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          <SelectField
+            label="Cross-Aisle Width (Transverse)"
+            name="crossAisleWidth"
+            unit="ft"
+            options={[
+              { value: 6, label: '6 ft (VNA)' },
+              { value: 8, label: '8 ft' },
+              { value: 10, label: '10 ft (Standard)' },
+              { value: 12, label: '12 ft' },
+              { value: 14, label: '14 ft' },
+            ]}
+          />
+          <p className="text-xs text-gray-600 -mt-1 px-1">
+            📏 <strong>Cross-aisle:</strong> Runs between rack rows (perpendicular to bays) - <span className="text-yellow-600 font-semibold">yellow lines in layout</span>
+          </p>
+        </div>
+
+        {isMounted && (
+          <div className="p-3 bg-green-50 rounded-lg text-xs text-green-800">
+            <p className="font-semibold mb-1">📊 Row Pitch Calculation:</p>
+            <p className="mb-1">Row Pitch = Bay Width + Cross-Aisle Width</p>
+            <p className="font-bold text-green-900">
+              = {inputs.bayWidth} ft + {inputs.crossAisleWidth} ft = <span className="text-lg">{(inputs.bayWidth + inputs.crossAisleWidth).toFixed(1)} ft</span>
+            </p>
+            <p className="text-xs text-green-700 mt-2 italic">
+              This is the spacing between rack rows (center to center)
+            </p>
+          </div>
+        )}
 
         <InputField
           label="Small Gap Between Bays"
@@ -323,6 +430,29 @@ export default function InputPanel({ inputs, onInputChange, results }) {
           unit="ft"
           help="Usable height under mezzanine deck"
         />
+
+        <InputField
+          label="Number of Mezzanine Levels"
+          name="mezzLevels"
+          min={1}
+          max={5}
+          step={1}
+          unit="levels"
+          help="Number of mezzanine floors (1 level = single deck, 2 levels = double deck, etc.)"
+        />
+        
+        {isMounted && inputs.mezzPercent > 0 && inputs.percentRacking > 0 && (
+          <div className="mt-2 p-3 bg-blue-50 rounded-lg text-xs text-blue-800">
+            <p className="font-semibold mb-1">📊 Mezzanine Calculation:</p>
+            <p>• Area: {Math.round((inputs.warehouseArea || 0) * inputs.percentRacking / 100 * inputs.mezzPercent / 100).toLocaleString()} sq.ft</p>
+            <p>• Clear Height: {inputs.mezzClearHeight} ft per level</p>
+            <p>• Levels: {inputs.mezzLevels} level{inputs.mezzLevels > 1 ? 's' : ''}</p>
+            <p className="font-bold mt-1">
+              = {Math.round((inputs.warehouseArea || 0) * inputs.percentRacking / 100 * inputs.mezzPercent / 100).toLocaleString()} × {inputs.mezzClearHeight} × {inputs.mezzLevels}
+              = {Math.round(((inputs.warehouseArea || 0) * inputs.percentRacking / 100 * inputs.mezzPercent / 100 * inputs.mezzClearHeight * inputs.mezzLevels) / 35.3147).toLocaleString()} CBM
+            </p>
+          </div>
+        )}
       </Section>
 
       {/* Advanced Settings */}

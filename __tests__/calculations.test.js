@@ -164,17 +164,34 @@ describe('Warehouse Capacity Calculator - Core Functions', () => {
 
   // Test 8: Mezzanine CBM
   describe('calculateMezzanineCBM', () => {
-    test('should calculate mezzanine CBM correctly', () => {
+    test('should calculate mezzanine CBM correctly with 1 level', () => {
       const mezzArea = 19440; // from earlier test
       const mezzClearHeight = 7.2;
+      const mezzLevels = 1;
       
-      const result = calculateMezzanineCBM(mezzArea, mezzClearHeight);
+      const result = calculateMezzanineCBM(mezzArea, mezzClearHeight, mezzLevels);
       
-      // Mezzanine cuft = 19440 * 7.2 = 139968 cuft
+      // Mezzanine cuft = 19440 * 7.2 * 1 = 139968 cuft
       // Mezzanine CBM = 139968 / 35.3147 = 3963.55 CBM
       
       expect(result.mezzTotalCuft).toBe(139968);
       expect(result.mezzTotalCBM).toBeCloseTo(3963.55, 1);
+      expect(result.mezzLevels).toBe(1);
+    });
+
+    test('should calculate mezzanine CBM correctly with multiple levels', () => {
+      const mezzArea = 10000;
+      const mezzClearHeight = 8;
+      const mezzLevels = 2;
+      
+      const result = calculateMezzanineCBM(mezzArea, mezzClearHeight, mezzLevels);
+      
+      // Mezzanine cuft = 10000 * 8 * 2 = 160000 cuft
+      // Mezzanine CBM = 160000 / 35.3147 = 4530.74 CBM
+      
+      expect(result.mezzTotalCuft).toBe(160000);
+      expect(result.mezzTotalCBM).toBeCloseTo(4530.74, 1);
+      expect(result.mezzLevels).toBe(2);
     });
   });
 
@@ -267,6 +284,7 @@ describe('Warehouse Capacity Calculator - Core Functions', () => {
         palletFootprint: 12.92,
         palletsPerLevelOverride: null,
         mezzClearHeight: 7.2,
+        mezzLevels: 1,
         useModuleMethod: true
       };
 
@@ -312,6 +330,7 @@ describe('Warehouse Capacity Calculator - Core Functions', () => {
         palletFootprint: 12.92,
         palletsPerLevelOverride: null,
         mezzClearHeight: 7.2,
+        mezzLevels: 1,
         useModuleMethod: true
       };
 
@@ -347,6 +366,7 @@ describe('Warehouse Capacity Calculator - Core Functions', () => {
         palletFootprint: 12.92,
         palletsPerLevelOverride: null,
         mezzClearHeight: 7.2,
+        mezzLevels: 1,
         useModuleMethod: true
       };
 
@@ -380,6 +400,7 @@ describe('Warehouse Capacity Calculator - Core Functions', () => {
         palletFootprint: 12.92,
         palletsPerLevelOverride: null,
         mezzClearHeight: 7.2,
+        mezzLevels: 1,
         useModuleMethod: true
       };
 
@@ -409,6 +430,7 @@ describe('Warehouse Capacity Calculator - Core Functions', () => {
         palletFootprint: 12.92,
         palletsPerLevelOverride: null,
         mezzClearHeight: 7.2,
+        mezzLevels: 1,
         useModuleMethod: true
       };
 
