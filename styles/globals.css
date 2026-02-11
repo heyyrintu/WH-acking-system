@@ -76,17 +76,20 @@ body {
   scrollbar-color: #cbd5e1 #f9fafb;
 }
 
-/* Prevent scroll jumping on input focus */
-input:focus,
-select:focus,
-textarea:focus {
-  scroll-margin-top: 0;
-  scroll-margin-bottom: 0;
-}
-
-/* Smooth scroll prevention for input changes */
+/* Smooth scroll behavior */
 html {
   scroll-behavior: auto;
+}
+
+/* Prevent number inputs from scrolling value on wheel */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 /* Print styles */

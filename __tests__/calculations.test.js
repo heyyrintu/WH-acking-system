@@ -54,6 +54,26 @@ describe('Warehouse Capacity Calculator - Core Functions', () => {
       expect(result.hdArea).toBe(45360); // 64800 - 19440
       expect(result.stagingArea).toBe(43200); // 108000 - 64800
     });
+
+    test('should correctly use direct area input mode', () => {
+      const result = calculateAreas(108000, 60, 30, true, 50000, 20000);
+      
+      expect(result.totalArea).toBe(108000);
+      expect(result.hdArea).toBe(50000); // Direct input
+      expect(result.mezzArea).toBe(20000); // Direct input
+      expect(result.rackingArea).toBe(70000); // 50000 + 20000
+      expect(result.stagingArea).toBe(38000); // 108000 - 70000
+      expect(result.useDirectAreaInput).toBe(true);
+    });
+
+    test('should handle overflow in direct area input mode', () => {
+      const result = calculateAreas(100000, 60, 30, true, 80000, 40000);
+      
+      expect(result.hdArea).toBe(80000);
+      expect(result.mezzArea).toBe(40000);
+      expect(result.rackingArea).toBe(120000); // Exceeds total
+      expect(result.stagingArea).toBe(0); // Should not go negative
+    });
   });
 
   // Test 3: Bay dimensions

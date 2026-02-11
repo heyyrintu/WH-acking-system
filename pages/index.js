@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Head from 'next/head';
 import InputPanel from '../components/InputPanel';
 import ResultsPanel from '../components/ResultsPanel';
@@ -23,9 +23,16 @@ export default function Home() {
     levelHeight: 6,
     levels: 7,
     
-    // Area allocation
+    // Area allocation mode
+    useDirectAreaInput: false, // Toggle between percentage and direct area input
+    
+    // Percentage-based allocation (when useDirectAreaInput is false)
     percentRacking: 60,
     mezzPercent: 30, // 30% of racking area goes to mezzanine
+    
+    // Direct area input (when useDirectAreaInput is true)
+    hdRackArea: 45360, // Direct HD rack area in sq.ft
+    mezzanineArea: 19440, // Direct mezzanine area in sq.ft
     
     // Aisle and operations
     smallGap: 1.5,
@@ -49,24 +56,13 @@ export default function Home() {
   const [results, setResults] = useState(null);
   const [showWalkthrough, setShowWalkthrough] = useState(false);
   const [activeView, setActiveView] = useState('standard'); // 'standard' or 'vna'
-  const scrollPositionRef = useRef(0);
 
   // Calculate on mount and input changes
+  // Calculate on mount and input changes
   useEffect(() => {
-    // Save current scroll position
-    scrollPositionRef.current = window.scrollY || window.pageYOffset;
-    
     try {
       const calculated = calculateWarehouseCapacity(inputs);
       setResults(calculated);
-      
-      // Restore scroll position after calculation
-      requestAnimationFrame(() => {
-        window.scrollTo({
-          top: scrollPositionRef.current,
-          behavior: 'instant'
-        });
-      });
     } catch (error) {
       console.error('Calculation error:', error);
     }
@@ -81,14 +77,22 @@ export default function Home() {
     }
   }, []);
 
-  const handleInputChange = (name, value) => {
+  const handleInputChange = useCallback((name, value) => {
+    // Skip internal submit trigger
+    if (name === '_submit') return;
+    
     setInputs(prev => ({
       ...prev,
       [name]: value
     }));
-  };
+  }, []);
 
-  const loadDefaults = () => {
+  const loadDefaults = useCallback((e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     setInputs({
       warehouseArea: 108000,
       warehouseLength: 0,
@@ -99,8 +103,11 @@ export default function Home() {
       bayWidth: 3.5,
       levelHeight: 6,
       levels: 7,
+      useDirectAreaInput: false,
       percentRacking: 60,
       mezzPercent: 30,
+      hdRackArea: 45360,
+      mezzanineArea: 19440,
       smallGap: 1.5,
       aisleWidth: 10,
       crossAisleWidth: 10,
@@ -112,25 +119,31 @@ export default function Home() {
       palletsPerLevelOverride: null,
       useModuleMethod: false,
     });
-  };
+  }, []);
 
-  const toggleVNAComparison = () => {
+  const toggleVNAComparison = useCallback(() => {
     if (activeView === 'standard') {
       // Switch to VNA
       setActiveView('vna');
-      handleInputChange('aisleWidth', 6);
-      handleInputChange('crossAisleWidth', 6);
-      handleInputChange('isVNA', true);
-      handleInputChange('aisleOverheadMultiplier', 1.2);
+      setInputs(prev => ({
+        ...prev,
+        aisleWidth: 6,
+        crossAisleWidth: 6,
+        isVNA: true,
+        aisleOverheadMultiplier: 1.2
+      }));
     } else {
       // Switch back to standard
       setActiveView('standard');
-      handleInputChange('aisleWidth', 10);
-      handleInputChange('crossAisleWidth', 10);
-      handleInputChange('isVNA', false);
-      handleInputChange('aisleOverheadMultiplier', 1.5);
+      setInputs(prev => ({
+        ...prev,
+        aisleWidth: 10,
+        crossAisleWidth: 10,
+        isVNA: false,
+        aisleOverheadMultiplier: 1.5
+      }));
     }
-  };
+  }, [activeView]);
 
   return (
     <>
